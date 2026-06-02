@@ -17101,6 +17101,10 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
                 const msg = err.message || '';
                 // 할당량 초과 (429): 이 모델 건너뜀, 다음 요청 때도 건너뜀
                 if (msg.includes('429')) return { skip: true, reason: '할당량 초과' };
+                // 서버 과부하 (503): 다음 모델로 폴백
+                if (msg.includes('503') || msg.includes('서버 과부하') || msg.includes('overloaded')) {
+                    return { skip: true, reason: '서버 과부하' };
+                }
                 // Thinking 미지원 또는 인수 오류 (Thinking 포함 400/422)
                 if (msg.includes('Thinking 미지원') ||
                     (config?.thinkingConfig && (msg.includes('400') || msg.includes('422')))) {
@@ -17212,7 +17216,8 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
             }
 
             // ── Gemini SSE 스트리밍 ───────────────────────────────────────
-            async callGeminiStream(prompt, model, apiKey, generationConfig, contentsOverride, onChunk) {
+            async callGeminiStream(prompt, model, apiKey, generationConfig, contentsOverride, onChunk, retryCount = 0) {
+                const maxRetries = 2;
                 const requestBody = {
                     systemInstruction: { parts: [{ text: this._geminiSystemInstruction() }] },
                     contents: contentsOverride || [{ parts: [{ text: prompt }] }]
@@ -17225,6 +17230,16 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestBody)
                 });
+
+                if (response.status === 503) {
+                    if (retryCount < maxRetries) {
+                        const waitTime = 2000 * (retryCount + 1);
+                        console.log(`⚠️ Gemini 스트리밍 503 - ${retryCount + 1}/${maxRetries} 재시도 (${waitTime/1000}초 대기)`);
+                        await new Promise(resolve => setTimeout(resolve, waitTime));
+                        return this.callGeminiStream(prompt, model, apiKey, generationConfig, contentsOverride, onChunk, retryCount + 1);
+                    }
+                    throw new Error(`Gemini 스트리밍 오류: 503`);
+                }
 
                 if (!response.ok) {
                     throw new Error(`Gemini 스트리밍 오류: ${response.status}`);
