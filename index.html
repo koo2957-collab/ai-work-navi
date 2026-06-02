@@ -13304,6 +13304,7 @@ ${incompleteInfo}
                     // 서식 바이너리도 포함
                     const allDetails = { ...this.checklistDetails };
                     const formsData = await this._exportFormsData(allDetails);
+                    const attachmentsData = await this._exportAttachmentsData(allDetails);
                     const backup = {
                         version: '6.2',
                         exportDate: new Date().toISOString(),
@@ -13311,6 +13312,7 @@ ${incompleteInfo}
                         data: safeData,
                         checklistDetails: allDetails,
                         formsData,
+                        attachmentsData,
                         folders: this.allData.folders || []
                     };
                     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
@@ -13350,7 +13352,7 @@ ${incompleteInfo}
                             const choice = confirm('전체 백업을 복원합니다.\n\n확인: 기존 데이터에 병합 추가\n취소: 취소');
                             if (!choice) return;
                             await this._processImportedPackage(imported.data
-                                ? { type: 'workflow_package', workflows: imported.data.workflows || [], formsData: imported.formsData || {}, checklistDetailsMap: imported.checklistDetails || {} }
+                                ? { type: 'workflow_package', workflows: imported.data.workflows || [], formsData: imported.formsData || {}, attachmentsData: imported.attachmentsData || {}, checklistDetailsMap: imported.checklistDetails || {} }
                                 : imported);
                         } else {
                             await this._processImportedPackage(imported);
