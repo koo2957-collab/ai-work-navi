@@ -1349,8 +1349,8 @@
         .ctrl-bar { display: flex; align-items: center; gap: 8px; padding: 0 0 14px; margin-bottom: 16px; border-bottom: 1px solid var(--border-subtle); flex-wrap: wrap; }
         .ctrl-search-wrap { flex: 1; min-width: 200px; position: relative; }
         .ctrl-search-wrap > svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
-        .ctrl-search-input { width: 100%; padding: 8px 10px 8px 32px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.85rem; font-family: inherit; color: var(--text-dark); background: #f8fafc; box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; letter-spacing: -0.01em; }
-        .ctrl-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); background: white; }
+        .ctrl-search-input { width: 100%; padding: 8px 10px 8px 32px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.82rem; font-family: inherit; color: var(--text-dark); background: var(--white); box-sizing: border-box; transition: border-color 0.15s, box-shadow 0.15s; letter-spacing: -0.01em; }
+        .ctrl-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
         .ctrl-select { padding: 0 10px; height: 36px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.82rem; font-family: inherit; color: var(--text-dark); background: white; cursor: pointer; transition: border-color 0.15s; box-sizing: border-box; }
         .ctrl-select:focus { outline: none; border-color: var(--accent); }
         .filter-tab-group { display: flex; align-items: center; gap: 2px; background: var(--bg-light); border: 1.5px solid var(--border-light); border-radius: 9px; padding: 3px; }
@@ -4257,7 +4257,7 @@
                            id="mainSearchInput"
                            class="ctrl-search-input"
                            placeholder="업무 검색..."
-                           onkeyup="app.filterWorkflows()">
+                           oninput="app.filterWorkflows()">
                 </div>
                 <!-- 정렬 -->
                 <select class="ctrl-select" id="sortSelect" onchange="app.sortWorkflows(this.value)">
