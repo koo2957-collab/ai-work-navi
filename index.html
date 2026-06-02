@@ -11286,14 +11286,17 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 const workflow = this.allData.workflows.find(w => w.id === id);
                 if (!workflow) return;
 
-                // 업무유형(isTemplate)인 경우 보관함으로 이동
+                // 업무유형(isTemplate)인 경우 휴지통으로 삭제
                 if (workflow.isTemplate) {
-                    const doArchive = confirm(
-                        '이 업무를 보관함으로 이동하시겠습니까?\n\n' +
-                        '• 확인(OK): 보관함으로 이동 — 업무 관리 화면에서 언제든 복원 가능\n' +
-                        '• 취소(Cancel): 작업 취소'
-                    );
-                    if (doArchive) this.archiveTemplate(id);
+                    if (!confirm(`"${workflow.title}" 업무를 삭제하시겠습니까?\n\n휴지통으로 이동됩니다.`)) return;
+                    workflow.isDeleted = true;
+                    workflow.deletedAt = new Date().toISOString();
+                    this.saveData();
+                    this.updateStats();
+                    this.displayWorkflows();
+                    this.updateTrashBadge();
+                    if (this.focusMode && this.focusedWorkflowId === id) this.exitFocusMode();
+                    this.showToast('success', '🗑️', '휴지통으로 이동했습니다.');
                     return;
                 }
 
@@ -11641,6 +11644,36 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 if (document.getElementById('workflowManagerModal')?.classList.contains('show')) {
                     this.renderWorkflowTree();
                 }
+            }
+
+            // 보관함 항목 삭제 (휴지통으로 이동)
+            deleteArchivedWorkflow(id) {
+                const workflow = this.allData.workflows.find(w => w.id === id);
+                if (!workflow) return;
+                if (!confirm(`"${workflow.title}" 업무를 삭제하시겠습니까?\n\n휴지통으로 이동됩니다.`)) return;
+                workflow.isDeleted = true;
+                workflow.deletedAt = new Date().toISOString();
+                this.saveData();
+                this.updateStats();
+                this.displayWorkflows();
+                this.updateTrashBadge();
+                if (document.getElementById('workflowManagerModal')?.classList.contains('show')) {
+                    this.renderWorkflowTree();
+                }
+                this.showToast('success', '🗑️', '휴지통으로 이동했습니다.');
+            }
+
+            // 보관함 모달 내 가져온 업무 삭제 (휴지통으로 이동)
+            deleteImportedWorkflow(id) {
+                const workflow = this.allData.workflows.find(w => w.id === id);
+                if (!workflow) return;
+                if (!confirm(`"${workflow.title}" 업무를 삭제하시겠습니까?\n\n휴지통으로 이동됩니다.`)) return;
+                workflow.isDeleted = true;
+                workflow.deletedAt = new Date().toISOString();
+                this.saveData();
+                this.displayTemplates();
+                this.updateTrashBadge();
+                this.showToast('success', '🗑️', '휴지통으로 이동했습니다.');
             }
 
             // ===== 새로운 체크리스트 카드 기능 =====
@@ -14484,6 +14517,7 @@ ${incompleteInfo}
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
                             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.escapeHtml(w.title)}</span>
                             <button onclick="event.stopPropagation();app.restoreTemplate(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(37,99,235,0.25);border-radius:4px;background:transparent;color:var(--accent);cursor:pointer;" title="복원">복원</button>
+                            <button onclick="event.stopPropagation();app.deleteArchivedWorkflow(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(239,68,68,0.25);border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;margin-left:3px;" title="삭제">삭제</button>
                         </div>`).join('')}`;
                     })()}
                 `;
@@ -16227,6 +16261,7 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
                             <div class="template-actions">
                                 <button class="btn btn-small btn-primary" onclick="app.closeModal('templateModal');app.duplicateWorkflow(${wf.id});">✅ 이 업무로 시작</button>
                                 <button class="btn btn-small btn-secondary" onclick="app.archiveTemplate(${wf.id});app.displayTemplates();">📦 보관함 이동</button>
+                                <button class="btn btn-small btn-secondary" onclick="app.deleteImportedWorkflow(${wf.id})">🗑️ 삭제</button>
                             </div>
                         </div>
                     `;
