@@ -14508,7 +14508,7 @@ ${incompleteInfo}
                         <span class="wfm-folder-count">${noneCount}</span>
                     </div>` : ''}
                     ${(() => {
-                        const archivedItems = this.allData.workflows.filter(w => w.type !== 'report' && w.isArchived);
+                        const archivedItems = this.allData.workflows.filter(w => w.type !== 'report' && w.isArchived && !w.isDeleted);
                         if (archivedItems.length === 0) return '';
                         return `<div class="wfm-folder-divider"></div>
                         <div class="wfm-sidebar-label" style="padding-top:4px;">보관함</div>
