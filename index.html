@@ -4272,7 +4272,7 @@
                 <div class="filter-tab-group" id="statusFilterTabs">
                     <button class="filter-tab active" data-mode="inProgress" onclick="app.filterWorkflowsByStatus('inProgress', this)">진행중</button>
                     <button class="filter-tab" data-mode="reference" onclick="app.filterWorkflowsByStatus('reference', this)">레퍼런스</button>
-                    <button class="filter-tab" data-mode="done" onclick="app.filterWorkflowsByStatus('done', this)">완료됨</button>
+                    <button class="filter-tab" data-mode="done" onclick="app.filterWorkflowsByStatus('done', this)">처리완료</button>
                     <button class="filter-tab" data-mode="all" onclick="app.filterWorkflowsByStatus('all', this)">전체</button>
                 </div>
                 <!-- 기간 필터 -->
@@ -11755,6 +11755,9 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 this.saveData();
                 if (this.focusMode && this.focusedWorkflowId === id) this.exitFocusMode();
                 else { this.updateStats(); this.displayWorkflows(); }
+                if (document.getElementById('workflowManagerModal')?.classList.contains('show')) {
+                    this.renderWorkflowTree();
+                }
                 this.showToast('success', '↩', '진행중으로 복귀했습니다.');
             }
 
@@ -14627,18 +14630,14 @@ ${incompleteInfo}
                         </div>`).join('')}`;
                     })()}
                     ${(() => {
-                        const doneItems = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed)
-                            .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+                        const doneItems = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed);
                         if (doneItems.length === 0) return '';
                         return `<div class="wfm-folder-divider"></div>
-                        <div class="wfm-sidebar-label" style="padding-top:4px;">완료됨 (${doneItems.length})</div>
-                        ${doneItems.map(w => `
-                        <div class="wfm-archive-item" title="${this.escapeHtml(w.title)}">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.escapeHtml(w.title)}</span>
-                            <button onclick="event.stopPropagation();app.undoMarkWorkflowDone(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(37,99,235,0.25);border-radius:4px;background:transparent;color:var(--accent);cursor:pointer;" title="완료 취소">취소</button>
-                            <button onclick="event.stopPropagation();app.deleteWorkflow(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(239,68,68,0.25);border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;margin-left:3px;" title="삭제">삭제</button>
-                        </div>`).join('')}`;
+                        <div class="wfm-folder-item${sel === '__done__' ? ' active' : ''}" onclick="app.wfmSelectFolder('__done__')">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${sel === '__done__' ? '#2563eb' : '#9ca3af'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span style="flex:1;">처리완료</span>
+                            <span class="wfm-folder-count">${doneItems.length}</span>
+                        </div>`;
                     })()}
                 `;
             }
@@ -14732,8 +14731,13 @@ ${incompleteInfo}
                 const workflow = this.allData.workflows.find(w => w.id === workflowId);
                 if (!workflow) return;
                 const isPackage = workflow.isTemplate || (workflow.folderPath && workflow.folderPath.trim() !== '');
+                const isDone = !!workflow.completedProcessed;
 
                 menu.innerHTML = `
+                    ${isDone ? `<div class="wfm-ctx-item" onclick="app.undoMarkWorkflowDone(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg>
+                        완료 취소
+                    </div>` : ''}
                     <div class="wfm-ctx-item" onclick="app._enteredFocusFromWFM=true;app.focusWorkflow(${workflowId},true);app.closeModal('workflowManagerModal');document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         편집
@@ -14785,19 +14789,25 @@ ${incompleteInfo}
                 const statusFilter = document.getElementById('wfmStatusFilter')?.value || 'all';
                 const sortType = document.getElementById('workflowSortSelect')?.value || 'newest';
 
-                // 전체 업무 (보고서 및 아카이브 제외)
-                let allWorkflows = this.allData.workflows.filter(w => w.type !== 'report' && !w.isArchived && !w.isDeleted);
+                // 전체 업무 (보고서, 아카이브, 삭제, 완료됨 제외)
+                let allWorkflows = this.allData.workflows.filter(w => w.type !== 'report' && !w.isArchived && !w.isDeleted && !w.completedProcessed);
 
                 // 사이드바는 전체 기준으로 렌더 (아카이브 포함하여 보관함 카운트 표시)
                 this.wfmRenderSidebar(allWorkflows);
 
                 // 폴더 필터
-                let filtered = allWorkflows;
-                if (this.wfmSelectedFolder === '__none__') {
-                    filtered = filtered.filter(w => !w.folderPath || w.folderPath.trim() === '');
-                } else if (this.wfmSelectedFolder !== '__all__') {
-                    const sel = this.wfmSelectedFolder;
-                    filtered = filtered.filter(w => w.folderPath && (w.folderPath === sel || w.folderPath.startsWith(sel + '/')));
+                let filtered;
+                if (this.wfmSelectedFolder === '__done__') {
+                    filtered = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed)
+                        .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+                } else {
+                    filtered = allWorkflows;
+                    if (this.wfmSelectedFolder === '__none__') {
+                        filtered = filtered.filter(w => !w.folderPath || w.folderPath.trim() === '');
+                    } else if (this.wfmSelectedFolder !== '__all__') {
+                        const sel = this.wfmSelectedFolder;
+                        filtered = filtered.filter(w => w.folderPath && (w.folderPath === sel || w.folderPath.startsWith(sel + '/')));
+                    }
                 }
 
                 // 검색 필터
