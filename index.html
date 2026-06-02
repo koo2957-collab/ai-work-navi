@@ -384,7 +384,33 @@
             background: rgba(220,38,38,0.06) !important;
             color: #b91c1c !important;
         }
+        .fap-btn-done {
+            background: #059669 !important;
+            color: #fff !important;
+            font-weight: 700 !important;
+            letter-spacing: -0.01em;
+        }
+        .fap-btn-done:hover { background: #047857 !important; }
         .fap-spacer { flex: 1; }
+
+        /* ===== 완료된 업무 섹션 ===== */
+        .completed-section-wrap { grid-column: 1 / -1; margin-top: 8px; border: 1px solid var(--border-light); border-radius: 10px; overflow: hidden; background: var(--white); box-shadow: var(--shadow-sm); }
+        .completed-section-header { display: flex; align-items: center; gap: 8px; padding: 10px 16px; cursor: pointer; user-select: none; background: var(--bg-light); border-bottom: 1px solid transparent; transition: background 0.15s; }
+        .completed-section-header:hover { background: var(--bg-subtle); }
+        .completed-section-header.open { border-bottom-color: var(--border-light); }
+        .completed-section-title { font-size: 0.84rem; font-weight: 700; color: var(--text-dark); flex: 1; }
+        .completed-section-count { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
+        .completed-section-arrow { font-size: 0.75rem; color: var(--text-muted); transition: transform 0.2s; }
+        .completed-section-body { display: none; flex-direction: column; }
+        .completed-section-body.open { display: flex; }
+        .completed-row { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-top: 1px solid var(--border-subtle); transition: background 0.12s; }
+        .completed-row:hover { background: var(--bg-light); }
+        .completed-row-title { flex: 1; font-size: 0.86rem; font-weight: 600; color: var(--text-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+        .completed-row-date { font-size: 0.73rem; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; }
+        .completed-row-actions { display: flex; gap: 5px; flex-shrink: 0; }
+        :root.dark-mode .completed-section-wrap { background: var(--bg-light); border-color: rgba(255,255,255,0.08); }
+        :root.dark-mode .completed-section-header { background: rgba(255,255,255,0.04); }
+        :root.dark-mode .completed-row { border-top-color: rgba(255,255,255,0.06); }
 
         /* AI 길잡이 버튼 (체크리스트 항목 우측) */
         .ai-guide-btn {
@@ -1327,6 +1353,12 @@
         .ctrl-search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(37,99,235,0.1); background: white; }
         .ctrl-select { padding: 0 10px; height: 36px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.82rem; font-family: inherit; color: var(--text-dark); background: white; cursor: pointer; transition: border-color 0.15s; box-sizing: border-box; }
         .ctrl-select:focus { outline: none; border-color: var(--accent); }
+        .filter-tab-group { display: flex; align-items: center; gap: 2px; background: var(--bg-light); border: 1.5px solid var(--border-light); border-radius: 9px; padding: 3px; }
+        .filter-tab { height: 30px; padding: 0 12px; border: none; border-radius: 6px; font-size: 0.8rem; font-family: inherit; font-weight: 600; color: var(--text-muted); background: transparent; cursor: pointer; transition: all 0.15s; letter-spacing: -0.01em; white-space: nowrap; }
+        .filter-tab:hover { color: var(--text-dark); background: rgba(255,255,255,0.7); }
+        .filter-tab.active { background: var(--white); color: var(--accent); box-shadow: 0 1px 4px rgba(28,50,82,0.1); }
+        :root.dark-mode .filter-tab-group { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+        :root.dark-mode .filter-tab.active { background: rgba(255,255,255,0.1); }
         .ctrl-date-btn { display: inline-flex; align-items: center; gap: 5px; padding: 0 12px; height: 36px; border: 1.5px solid var(--border-light); border-radius: 8px; font-size: 0.82rem; font-family: inherit; font-weight: 500; color: var(--text-dark); background: white; cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap; box-sizing: border-box; }
         .ctrl-date-btn:hover { border-color: var(--accent); color: var(--accent); }
 
@@ -4228,18 +4260,21 @@
                            onkeyup="app.filterWorkflows()">
                 </div>
                 <!-- 정렬 -->
-                <select class="ctrl-select" onchange="app.sortWorkflows(this.value)">
+                <select class="ctrl-select" id="sortSelect" onchange="app.sortWorkflows(this.value)">
+                    <option value="title" selected>제목순 (가나다)</option>
                     <option value="latest">최신순</option>
+                    <option value="oldest">오래된순</option>
                     <option value="import">가져온순</option>
                     <option value="deadline">마감일순</option>
                     <option value="progress">진행률순</option>
                 </select>
-                <!-- 상태 필터 -->
-                <select class="ctrl-select" onchange="app.filterWorkflowsByStatus(this.value)">
-                    <option value="all">전체 상태</option>
-                    <option value="inProgress">진행중</option>
-                    <option value="completed">완료</option>
-                </select>
+                <!-- 상태 필터 탭 -->
+                <div class="filter-tab-group" id="statusFilterTabs">
+                    <button class="filter-tab active" data-mode="inProgress" onclick="app.filterWorkflowsByStatus('inProgress', this)">진행중</button>
+                    <button class="filter-tab" data-mode="reference" onclick="app.filterWorkflowsByStatus('reference', this)">레퍼런스</button>
+                    <button class="filter-tab" data-mode="done" onclick="app.filterWorkflowsByStatus('done', this)">완료됨</button>
+                    <button class="filter-tab" data-mode="all" onclick="app.filterWorkflowsByStatus('all', this)">전체</button>
+                </div>
                 <!-- 기간 필터 -->
                 <div class="dropdown" style="position:relative;">
                     <button class="ctrl-date-btn" onclick="app.toggleDropdown('dateFilterMenu')">
@@ -4586,7 +4621,7 @@
     <div class="modal" id="templateModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">업무 보관함</h2>
+                <h2 class="modal-title">재사용 업무</h2>
                 <button class="close-btn" onclick="app.closeModal('templateModal')">&times;</button>
             </div>
             <!-- 파일 가져오기/내보내기 -->
@@ -5952,14 +5987,15 @@
                 this.currentEditingWorkflowId = null;  // 편집 중인 워크플로우 ID
                 this.isReorderMode = false;  // 체크리스트 순서 변경 모드
                 this.recentWorksExpanded = false;  // Phase 4: 최근 업무 펼침 상태
+                this._completedSectionOpen = true; // 완료된 업무 섹션 기본 펼침
                 this.focusMode = false;       // 포커스 모드 ON/OFF
                 this.focusedWorkflowId = null; // 포커스 중인 업무 ID
                 this.focusEditMode = false;    // 편집 모드 (true=구조편집, false=업무수행)
                 this.focusDragSrcIndex = null; // DnD 드래그 소스 인덱스
                 this.wfmSelectedFolder = '__all__';  // 업무관리 선택된 폴더
                 this._wfmCtxListener = null;
-                this.currentSortMethod = 'latest';  // 심플 리스트: 정렬 방식 (latest/deadline/progress)
-                this.currentFilterMode = 'all';  // 심플 리스트: 필터 모드 (all/inProgress/completed)
+                this.currentSortMethod = 'title';  // 기본값: 제목순 (재시작 시 항상 초기화)
+                this.currentFilterMode = 'inProgress';  // 기본값: 진행중 (재시작 시 항상 초기화)
                 this.currentDateFilter = localStorage.getItem('dateFilter') || '3months';  // 기간 필터 (1month/3months/6months/1year/all/custom)
                 this.customDateRange = (() => { try { return JSON.parse(localStorage.getItem('customDateRange')) || null; } catch(e) { return null; } })();  // 사용자 지정 기간 {startDate, endDate}
                 this.currentPage = 1;  // 현재 페이지 번호
@@ -7688,9 +7724,15 @@
                             <button class="fap-btn" onclick="app.generateOfficialDocument(${workflow.id})">AI 기안</button>
                             <button class="fap-btn" onclick="app.openPDFModal(${workflow.id})">출력</button>
                             ${isPackage ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">새 업무 시작</button>` : ''}
-                            ${!isPackage && isCompleted ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">새 업무</button>` : ''}
+                            ${!isPackage && isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-done" onclick="app.markWorkflowDone(${workflow.id})">✅ 완료 처리</button>` : ''}
+                            ${!isPackage && workflow.completedProcessed ? `
+                                <div style="font-size:0.78rem;color:#10b981;font-weight:700;text-align:center;padding:4px 0;">✅ 완료 처리됨</div>
+                                <button class="fap-btn fap-btn-primary" onclick="app.recycleWorkflow(${workflow.id})">♻️ 재활용</button>
+                                <button class="fap-btn" style="font-size:0.81rem;color:var(--text-muted);" onclick="app.undoMarkWorkflowDone(${workflow.id})">↩ 완료 취소</button>
+                            ` : ''}
+                            ${!isPackage && !isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">새 업무</button>` : ''}
                             <div class="fap-spacer"></div>
-                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">보관함 이동</button>` : ''}
+                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">아카이브로 이동</button>` : ''}
                             ${!isPackage ? `<button class="fap-btn fap-btn-danger" onclick="app.deleteWorkflow(${workflow.id})">삭제</button>` : ''}
                         `;
                     }
@@ -7768,8 +7810,22 @@
                 // 필터링된 업무 목록
                 let allWorkflows = [...this.allData.workflows];
 
-                // 보고서 및 아카이브된 업무유형은 메인창에서 제외
-                allWorkflows = allWorkflows.filter(w => w.type !== 'report' && !w.isArchived && !w.isDeleted);
+                // 보고서·아카이브·삭제 제외 후 모드별 분기
+                const _base = allWorkflows.filter(w => w.type !== 'report' && !w.isArchived && !w.isDeleted);
+                if (this.currentFilterMode === 'done') {
+                    // 완료됨 탭: completedProcessed 업무만 표시
+                    allWorkflows = _base.filter(w => w.completedProcessed)
+                        .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+                } else if (this.currentFilterMode === 'reference') {
+                    // 레퍼런스 탭: 폴더지정 업무 (completedProcessed 제외)
+                    allWorkflows = _base.filter(w => !w.completedProcessed && w.folderPath && w.folderPath.trim() !== '');
+                } else if (this.currentFilterMode === 'inProgress') {
+                    // 진행중 탭: 폴더 없는 업무 (completedProcessed 제외)
+                    allWorkflows = _base.filter(w => !w.completedProcessed && (!w.folderPath || w.folderPath.trim() === ''));
+                } else {
+                    // 전체 탭
+                    allWorkflows = _base;
+                }
                 
                 // ⭐ 즐겨찾기 업무를 먼저 분리 (기간 필터와 무관하게 항상 표시)
                 const favoriteWorkflows = allWorkflows.filter(w => w.isPinned);
@@ -7825,65 +7881,22 @@
                     filteredNonFavoriteWorkflows = filteredNonFavoriteWorkflows.filter(w => w.type === this.currentCategory);
                 }
                 
-                // 3. 상태 필터 적용 (AND 조건) - 전체/진행중/완료 - 즐겨찾기와 일반 업무 모두에 적용
-                if (this.currentFilterMode === 'inProgress') {
-                    filteredFavoriteWorkflows = filteredFavoriteWorkflows.filter(w => {
-                        const progress = this.calculateProgress(w);
-                        return progress >= 0 && progress < 100;
-                    });
-                    filteredNonFavoriteWorkflows = filteredNonFavoriteWorkflows.filter(w => {
-                        const progress = this.calculateProgress(w);
-                        return progress >= 0 && progress < 100;
-                    });
-                } else if (this.currentFilterMode === 'completed') {
-                    filteredFavoriteWorkflows = filteredFavoriteWorkflows.filter(w => {
-                        const progress = this.calculateProgress(w);
-                        return progress === 100;
-                    });
-                    filteredNonFavoriteWorkflows = filteredNonFavoriteWorkflows.filter(w => {
-                        const progress = this.calculateProgress(w);
-                        return progress === 100;
-                    });
-                }
+                // 3. 상태 필터는 상단 _base 분기에서 이미 처리됨 — 여기서는 추가 필터 없음
                 
-                // 4. 검색 필터 적용 (AND 조건) - 제목/내용 검색 (1년 단위) - 즐겨찾기와 일반 업무 모두에 적용
+                // 4. 검색 필터 — 날짜 제한 없이 모든 업무 전체 검색
                 const searchInput = document.getElementById('mainSearchInput');
                 if (searchInput && searchInput.value.trim()) {
                     const searchTerm = searchInput.value.toLowerCase().trim();
-                    const oneYearAgo = new Date();
-                    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-                    
-                    // 즐겨찾기 업무는 기간 제한 없이 검색 (즐겨찾기 특권)
-                    filteredFavoriteWorkflows = filteredFavoriteWorkflows.filter(w => {
+                    const matchFn = w => {
                         const title = (w.title || '').toLowerCase();
                         const content = (w.content || '').toLowerCase();
-                        const checklistMatch = w.checklist && Array.isArray(w.checklist) 
-                            ? w.checklist.some(item => {
-                                const itemText = (item.text || item.task || '').toLowerCase();
-                                return itemText.includes(searchTerm);
-                            })
+                        const checklistMatch = w.checklist && Array.isArray(w.checklist)
+                            ? w.checklist.some(item => (item.text || item.task || '').toLowerCase().includes(searchTerm))
                             : false;
                         return title.includes(searchTerm) || content.includes(searchTerm) || checklistMatch;
-                    });
-                    
-                    // 일반 업무는 1년 제한 적용
-                    filteredNonFavoriteWorkflows = filteredNonFavoriteWorkflows.filter(w => {
-                        // 1년 이내 업무만 검색 대상
-                        const createdDate = w.createdAt ? new Date(w.createdAt) : new Date(w.date);
-                        if (createdDate < oneYearAgo) return false;
-                        
-                        // 제목, 내용, 체크리스트 내용에 검색어 포함 여부
-                        const title = (w.title || '').toLowerCase();
-                        const content = (w.content || '').toLowerCase();
-                        // 🔥 체크리스트 내용 검색 추가
-                        const checklistMatch = w.checklist && Array.isArray(w.checklist) 
-                            ? w.checklist.some(item => {
-                                const itemText = (item.text || item.task || '').toLowerCase();
-                                return itemText.includes(searchTerm);
-                            })
-                            : false;
-                        return title.includes(searchTerm) || content.includes(searchTerm) || checklistMatch;
-                    });
+                    };
+                    filteredFavoriteWorkflows = filteredFavoriteWorkflows.filter(matchFn);
+                    filteredNonFavoriteWorkflows = filteredNonFavoriteWorkflows.filter(matchFn);
                 }
                 
                 // 5. 정렬 적용 (필터링 후 정렬) - 즐겨찾기와 일반 업무 각각 정렬
@@ -7932,16 +7945,31 @@
                         const daysB = this.calculateDaysLeft(b.deadline);
                         return daysA - daysB;
                     });
+                } else if (this.currentSortMethod === 'oldest') {
+                    filteredFavoriteWorkflows.sort((a, b) => {
+                        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.date);
+                        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.date);
+                        return dateA - dateB;
+                    });
+                    filteredNonFavoriteWorkflows.sort((a, b) => {
+                        const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.date);
+                        const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.date);
+                        return dateA - dateB;
+                    });
+                } else if (this.currentSortMethod === 'title') {
+                    const koSort = (a, b) => (a.title || '').localeCompare(b.title || '', 'ko');
+                    filteredFavoriteWorkflows.sort(koSort);
+                    filteredNonFavoriteWorkflows.sort(koSort);
                 } else if (this.currentSortMethod === 'progress') {
                     filteredFavoriteWorkflows.sort((a, b) => {
                         const progressA = this.calculateProgress(a);
                         const progressB = this.calculateProgress(b);
-                        return progressA - progressB;  // 진행률 낮은 것부터 높은 순서로
+                        return progressA - progressB;
                     });
                     filteredNonFavoriteWorkflows.sort((a, b) => {
                         const progressA = this.calculateProgress(a);
                         const progressB = this.calculateProgress(b);
-                        return progressA - progressB;  // 진행률 낮은 것부터 높은 순서로
+                        return progressA - progressB;
                     });
                 }
 
@@ -8095,7 +8123,7 @@
                 }).join('');
 
                 container.innerHTML = cardsHtml;
-                
+
                 // 7. 페이지네이션 UI 추가
                 this.renderPagination(totalPages, totalItems, startIndex, endIndex);
                 
@@ -9526,9 +9554,17 @@
             }
             
             // 심플 리스트: 필터 변경
-            filterWorkflowsByStatus(mode) {
+            filterWorkflowsByStatus(mode, btnEl) {
                 this.currentFilterMode = mode;
-                this.currentPage = 1;  // 필터 변경 시 첫 페이지로
+                this.currentPage = 1;
+                // 탭 버튼 활성 상태 업데이트
+                document.querySelectorAll('#statusFilterTabs .filter-tab').forEach(b => b.classList.remove('active'));
+                if (btnEl) {
+                    btnEl.classList.add('active');
+                } else {
+                    const target = document.querySelector(`#statusFilterTabs [data-mode="${mode}"]`);
+                    if (target) target.classList.add('active');
+                }
                 this.displayWorkflows();
             }
             
@@ -9808,8 +9844,16 @@
                 this.saveData();
                 
                 // UI 업데이트: 포커스 모드이면 체크리스트 영역만 부분 갱신 (전체 재구성 방지)
+                // 단, 진행률이 100%로 전환되거나 100%에서 내려올 때는 완료 처리 버튼 표시를 위해 전체 갱신
                 if (this.focusMode && this.focusedWorkflowId === workflowId) {
-                    this.refreshFocusChecklist(workflow);
+                    const newProgress = this.calculateProgress(workflow);
+                    const prevProgress = this._prevFocusProgress !== undefined ? this._prevFocusProgress : -1;
+                    this._prevFocusProgress = newProgress;
+                    if (newProgress === 100 || prevProgress === 100) {
+                        this.displayWorkflows();
+                    } else {
+                        this.refreshFocusChecklist(workflow);
+                    }
                 } else {
                     this.displayWorkflows();
                 }
@@ -11300,6 +11344,14 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                     return;
                 }
 
+                // 완료 처리된 업무는 폴더 체크 없이 바로 소프트 삭제
+                if (workflow.completedProcessed) {
+                    this._pendingDeleteId = id;
+                    document.getElementById('deleteConfirmWorkflowName').textContent = workflow.title;
+                    this.openModal('deleteConfirmModal');
+                    return;
+                }
+
                 // 폴더에 속한 업무는 직접 삭제 불가
                 if (workflow.folderPath && workflow.folderPath.trim() !== '') {
                     alert(
@@ -11620,7 +11672,7 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 workflow.isArchived = true;
                 this.hasUnsavedChanges = true;
                 this.saveData();
-                this.showToast('success', '📦', '업무가 보관함으로 이동되었습니다. 업무 관리에서 복원할 수 있습니다.');
+                this.showToast('success', '📦', '아카이브로 이동되었습니다. 업무 관리에서 복원할 수 있습니다.');
                 if (this.focusMode && this.focusedWorkflowId === id) {
                     this.exitFocusMode();
                 } else {
@@ -11674,6 +11726,60 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 this.displayTemplates();
                 this.updateTrashBadge();
                 this.showToast('success', '🗑️', '휴지통으로 이동했습니다.');
+            }
+
+            // 완료 처리 (completedProcessed 플래그 설정)
+            markWorkflowDone(id) {
+                const workflow = this.allData.workflows.find(w => w.id === id);
+                if (!workflow) return;
+                if (!confirm(`"${workflow.title}"\n\n완료 처리하시겠습니까?\n\n완료된 업무 섹션으로 이동됩니다.\n재활용 또는 삭제할 수 있습니다.`)) return;
+                workflow.completedProcessed = true;
+                workflow.completedAt = new Date().toISOString();
+                this.saveData();
+                if (this.focusMode && this.focusedWorkflowId === id) {
+                    this.exitFocusMode();
+                } else {
+                    this.updateStats();
+                    this.displayWorkflows();
+                }
+                this.showToast('success', '✅', '완료 처리되었습니다.');
+            }
+
+            // 완료 처리 취소 (진행중으로 복귀)
+            undoMarkWorkflowDone(id) {
+                const workflow = this.allData.workflows.find(w => w.id === id);
+                if (!workflow) return;
+                if (!confirm(`"${workflow.title}"\n\n완료 처리를 취소하시겠습니까?\n진행중 탭으로 돌아갑니다.`)) return;
+                delete workflow.completedProcessed;
+                delete workflow.completedAt;
+                this.saveData();
+                if (this.focusMode && this.focusedWorkflowId === id) this.exitFocusMode();
+                else { this.updateStats(); this.displayWorkflows(); }
+                this.showToast('success', '↩', '진행중으로 복귀했습니다.');
+            }
+
+            // 완료된 업무를 재사용 업무로 등록
+            recycleWorkflow(id) {
+                const workflow = this.allData.workflows.find(w => w.id === id);
+                if (!workflow) return;
+                this.saveAsTemplate(id);
+                this.showToast('success', '♻️', `"${workflow.title}" 재사용 업무로 등록되었습니다.`);
+            }
+
+            // 완료된 업무 섹션 접기/펼치기
+            toggleCompletedSection(headerEl) {
+                this._completedSectionOpen = !this._completedSectionOpen;
+                const body = headerEl.nextElementSibling;
+                const arrow = headerEl.querySelector('.completed-section-arrow');
+                if (this._completedSectionOpen) {
+                    headerEl.classList.add('open');
+                    body.classList.add('open');
+                    if (arrow) arrow.textContent = '▲';
+                } else {
+                    headerEl.classList.remove('open');
+                    body.classList.remove('open');
+                    if (arrow) arrow.textContent = '▼';
+                }
             }
 
             // ===== 새로운 체크리스트 카드 기능 =====
@@ -14511,13 +14617,27 @@ ${incompleteInfo}
                         const archivedItems = this.allData.workflows.filter(w => w.type !== 'report' && w.isArchived && !w.isDeleted);
                         if (archivedItems.length === 0) return '';
                         return `<div class="wfm-folder-divider"></div>
-                        <div class="wfm-sidebar-label" style="padding-top:4px;">보관함</div>
+                        <div class="wfm-sidebar-label" style="padding-top:4px;">아카이브</div>
                         ${archivedItems.map(w => `
                         <div class="wfm-archive-item" title="${this.escapeHtml(w.title)}">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
                             <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.escapeHtml(w.title)}</span>
                             <button onclick="event.stopPropagation();app.restoreTemplate(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(37,99,235,0.25);border-radius:4px;background:transparent;color:var(--accent);cursor:pointer;" title="복원">복원</button>
                             <button onclick="event.stopPropagation();app.deleteArchivedWorkflow(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(239,68,68,0.25);border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;margin-left:3px;" title="삭제">삭제</button>
+                        </div>`).join('')}`;
+                    })()}
+                    ${(() => {
+                        const doneItems = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed)
+                            .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
+                        if (doneItems.length === 0) return '';
+                        return `<div class="wfm-folder-divider"></div>
+                        <div class="wfm-sidebar-label" style="padding-top:4px;">완료됨 (${doneItems.length})</div>
+                        ${doneItems.map(w => `
+                        <div class="wfm-archive-item" title="${this.escapeHtml(w.title)}">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.escapeHtml(w.title)}</span>
+                            <button onclick="event.stopPropagation();app.undoMarkWorkflowDone(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(37,99,235,0.25);border-radius:4px;background:transparent;color:var(--accent);cursor:pointer;" title="완료 취소">취소</button>
+                            <button onclick="event.stopPropagation();app.deleteWorkflow(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(239,68,68,0.25);border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;margin-left:3px;" title="삭제">삭제</button>
                         </div>`).join('')}`;
                     })()}
                 `;
@@ -14628,7 +14748,7 @@ ${incompleteInfo}
                     </div>` : ''}
                     ${workflow.isTemplate ? `<div class="wfm-ctx-item" onclick="app.archiveTemplate(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-                        보관함으로 이동
+                        아카이브로 이동
                     </div>` : ''}
                     <div class="wfm-ctx-item" onclick="app.exportWorkflowPackage(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -16260,7 +16380,7 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
                             ${checklistBadge(cnt)}
                             <div class="template-actions">
                                 <button class="btn btn-small btn-primary" onclick="app.closeModal('templateModal');app.duplicateWorkflow(${wf.id});">✅ 이 업무로 시작</button>
-                                <button class="btn btn-small btn-secondary" onclick="app.archiveTemplate(${wf.id});app.displayTemplates();">📦 보관함 이동</button>
+                                <button class="btn btn-small btn-secondary" onclick="app.archiveTemplate(${wf.id});app.displayTemplates();">📦 아카이브로 이동</button>
                                 <button class="btn btn-small btn-secondary" onclick="app.deleteImportedWorkflow(${wf.id})">🗑️ 삭제</button>
                             </div>
                         </div>
