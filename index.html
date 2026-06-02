@@ -7693,16 +7693,16 @@
                             <button class="fap-btn" onclick="app.exportMultipleWorkflowPackages([${workflow.id}])">내보내기</button>
                             <button class="fap-btn" onclick="app.generateOfficialDocument(${workflow.id})">AI 기안</button>
                             <button class="fap-btn" onclick="app.openPDFModal(${workflow.id})">출력</button>
-                            ${isPackage ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">새 업무 시작</button>` : ''}
+                            <div class="fap-spacer"></div>
+                            ${isPackage ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">복사하여 시작</button>` : ''}
+                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">아카이브로 이동</button>` : ''}
                             ${!isPackage && isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-done" onclick="app.markWorkflowDone(${workflow.id})">✅ 완료 처리</button>` : ''}
                             ${!isPackage && workflow.completedProcessed ? `
                                 <div style="font-size:0.78rem;color:#10b981;font-weight:700;text-align:center;padding:4px 0;">✅ 완료 처리됨</div>
                                 <button class="fap-btn fap-btn-primary" onclick="app.recycleWorkflow(${workflow.id})">♻️ 재활용</button>
                                 <button class="fap-btn" style="font-size:0.81rem;color:var(--text-muted);" onclick="app.undoMarkWorkflowDone(${workflow.id})">↩ 완료 취소</button>
                             ` : ''}
-                            ${!isPackage && !isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">새 업무</button>` : ''}
-                            <div class="fap-spacer"></div>
-                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">아카이브로 이동</button>` : ''}
+                            ${!isPackage && !isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">복사하여 시작</button>` : ''}
                             ${!isPackage ? `<button class="fap-btn fap-btn-danger" onclick="app.deleteWorkflow(${workflow.id})">삭제</button>` : ''}
                         `;
                     }
@@ -8134,7 +8134,7 @@
                             <button class="btn btn-small btn-primary" onclick="app.focusWorkflow(${workflow.id},true)" style="margin-top: 10px;">체크리스트 편집</button>
                         </div>
                         <div class="workflow-actions" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border-light);">
-                            ${isCompleted ? `<button class="btn btn-small" onclick="app.duplicateWorkflow(${workflow.id})" style="background: #10b981; color: white;">새 업무로 시작</button>` : ''}
+                            ${isCompleted ? `<button class="btn btn-small" onclick="app.duplicateWorkflow(${workflow.id})" style="background: #10b981; color: white;">복사하여 시작</button>` : ''}
                             <button class="btn btn-small btn-primary" onclick="app.focusWorkflow(${workflow.id},true)">체크리스트 편집</button>
                             <button class="btn btn-small btn-accent" onclick="app.saveAsTemplate(${workflow.id})" style="background: var(--accent);">템플릿 저장</button>
                             <button class="btn btn-small" onclick="app.generateOfficialDocument(${workflow.id})" style="background: #8b5cf6; color: white; display:inline-flex; align-items:center; gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clip-rule="evenodd"/></svg>AI 공문 기안</button>
@@ -8172,7 +8172,7 @@
                             ${workflow.checklist.map((item, index) => this.renderChecklistItem(workflow, item, index)).join('')}
                         </div>
                         <div class="workflow-actions" style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--border-light);">
-                            ${isCompleted ? `<button class="btn btn-small" onclick="app.duplicateWorkflow(${workflow.id})" style="background: #10b981; color: white;">새 업무로 시작</button>` : ''}
+                            ${isCompleted ? `<button class="btn btn-small" onclick="app.duplicateWorkflow(${workflow.id})" style="background: #10b981; color: white;">복사하여 시작</button>` : ''}
                             <button class="btn btn-small btn-primary" onclick="app.focusWorkflow(${workflow.id},true)">체크리스트 편집</button>
                             <button class="btn btn-small btn-accent" onclick="app.saveAsTemplate(${workflow.id})" style="background: var(--accent);">템플릿 저장</button>
                             <button class="btn btn-small" onclick="app.generateOfficialDocument(${workflow.id})" style="background: #8b5cf6; color: white; display:inline-flex; align-items:center; gap:5px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0;"><path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 007.466 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258a2.25 2.25 0 00-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.25 2.25 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.25 2.25 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5z" clip-rule="evenodd"/></svg>AI 공문 기안</button>
@@ -11288,7 +11288,7 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 });
             }
 
-            // 업무관리 모달에서 새 업무로 시작
+            // 업무관리 모달에서 복사하여 시작
             duplicateWorkflowFromManager(id) {
                 // 업무관리 모달 닫기 후 메인 화면에서 새 업무 생성 플로우로 전환
                 this.closeModal('workflowManagerModal');
@@ -14718,7 +14718,7 @@ ${incompleteInfo}
                     </div>
                     ${isPackage ? `<div class="wfm-ctx-item" onclick="app.duplicateWorkflowFromManager(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg>
-                        새 업무 시작
+                        복사하여 시작
                     </div>` : ''}
                     ${workflow.isTemplate ? `<div class="wfm-ctx-item" onclick="app.archiveTemplate(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
@@ -18880,7 +18880,7 @@ ${aiPartnerCitationFirstRules}
                                             <div style="font-size: 0.9rem; color: var(--text-gray);">원본 날짜와 체크 상태를 그대로 유지합니다</div>
                                         </button>
                                         <button class="btn btn-secondary" data-import-mode="new" style="padding: 20px; text-align: left; display: flex; flex-direction: column; align-items: flex-start;">
-                                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 8px;">새 업무로 시작</div>
+                                            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 8px;">복사하여 시작</div>
                                             <div style="font-size: 0.9rem; color: var(--text-gray);">오늘 날짜로 설정하고 모든 체크를 해제합니다</div>
                                         </button>
                                     </div>
@@ -19015,7 +19015,7 @@ ${aiPartnerCitationFirstRules}
                         
                         // 가져오기 방식에 따라 처리
                         if (importMode === 'new') {
-                            // 새 업무로 시작: 오늘 날짜 + 체크 해제 + 마감일 설정
+                            // 복사하여 시작: 오늘 날짜 + 체크 해제 + 마감일 설정
                             project.createdAt = todayDate;
                             project.date = todayDateKR;
                             project.deadline = deadline || null;  // 마감일 설정
@@ -24780,7 +24780,7 @@ ${originalContent}`;
                 modal.innerHTML = `
                     <div class="modal-content" style="max-width: 500px;">
                         <div class="modal-header">
-                            <div class="modal-title">🔄 새 업무로 시작</div>
+                            <div class="modal-title">🔄 복사하여 시작</div>
                             <button class="close-btn" onclick="app.closeDuplicateModal()">&times;</button>
                         </div>
                         <div class="modal-body">
