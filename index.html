@@ -9786,8 +9786,8 @@
                     }
                 });
 
-                // 하위 항목(1-1 등) 변경 시 부모(1번) 자동 완료/해제
-                if (this.isSubItem(currentItem.text)) {
+                // 하위 항목(1-1 등 또는 indent > 0) 변경 시 부모 자동 완료/해제
+                if (this.isSubItem(currentItem.text) || (currentItem.indent || 0) > 0) {
                     const parentInfo = this.findParentItem(workflow.checklist, itemIndex);
                     if (parentInfo) this.syncParentFromSubItems(workflow, parentInfo.index);
                 }
@@ -11199,46 +11199,61 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
             // 하위 항목의 부모 항목 찾기 함수
             findParentItem(checklist, currentIndex) {
                 if (!checklist || !checklist[currentIndex]) return null;
-                
+
                 const currentText = checklist[currentIndex].text;
                 const match = currentText.match(/\b(\d+)-\d+\b/);
-                if (!match) return null; // 하위 항목이 아님
-                
-                const parentNum = parseInt(match[1]); // 부모 번호 (예: "1-1"에서 "1")
-                
-                // 체크리스트에서 부모 번호에 해당하는 항목 찾기
-                // 항목 번호는 인덱스 + 1이므로, parentNum - 1이 실제 인덱스
-                const parentIndex = parentNum - 1;
-                
-                if (parentIndex >= 0 && parentIndex < checklist.length && parentIndex !== currentIndex) {
-                    return {
-                        index: parentIndex,
-                        item: checklist[parentIndex]
-                    };
+
+                // 1. 텍스트 패턴(1-1 등)으로 부모 찾기
+                if (match) {
+                    const parentNum = parseInt(match[1]);
+                    const parentIndex = parentNum - 1;
+                    if (parentIndex >= 0 && parentIndex < checklist.length && parentIndex !== currentIndex) {
+                        return { index: parentIndex, item: checklist[parentIndex] };
+                    }
                 }
-                
+
+                // 2. indent 기반으로 부모 찾기: 위쪽에서 가장 가까운 더 낮은 indent 항목
+                const currentIndent = checklist[currentIndex].indent || 0;
+                if (currentIndent > 0) {
+                    for (let i = currentIndex - 1; i >= 0; i--) {
+                        const candidateIndent = checklist[i].indent || 0;
+                        if (candidateIndent < currentIndent) {
+                            return { index: i, item: checklist[i] };
+                        }
+                    }
+                }
+
                 return null;
             }
 
             // 체크리스트 항목의 하위 항목들 찾기
             findSubItems(checklist, parentIndex) {
                 if (!checklist || !checklist[parentIndex]) return [];
-                
-                const parentNum = parentIndex + 1; // 부모 항목 번호
+
+                const parentNum = parentIndex + 1;
                 const subItems = [];
-                
+
+                // 1. 텍스트 패턴(1-1 등)으로 하위 항목 찾기
                 checklist.forEach((item, idx) => {
-                    if (idx === parentIndex) return; // 자기 자신은 제외
-                    
+                    if (idx === parentIndex) return;
                     const match = item.text.match(/\b(\d+)-\d+\b/);
                     if (match && parseInt(match[1]) === parentNum) {
-                        subItems.push({
-                            index: idx,
-                            item: item
-                        });
+                        subItems.push({ index: idx, item: item });
                     }
                 });
-                
+
+                if (subItems.length > 0) return subItems;
+
+                // 2. indent 기반으로 직계 하위 항목 찾기
+                const parentIndent = checklist[parentIndex].indent || 0;
+                for (let i = parentIndex + 1; i < checklist.length; i++) {
+                    const itemIndent = checklist[i].indent || 0;
+                    if (itemIndent <= parentIndent) break; // 같은 레벨 또는 상위 레벨이면 종료
+                    if (itemIndent === parentIndent + 1) {
+                        subItems.push({ index: i, item: checklist[i] });
+                    }
+                }
+
                 return subItems;
             }
 
