@@ -1466,7 +1466,7 @@
         .focus-deadline-input:focus { border-color: var(--accent); }
         /* WFM 업무유형 행 스타일 */
         .wfm-row-template > td { background: rgba(249,115,22,0.04); }
-        .wfm-row-archived { opacity: 0.45; }
+        .wfm-row-archived { opacity: 1; }
         .wfm-template-tag {
             display: inline-block;
             padding: 1px 6px;
@@ -7695,7 +7695,7 @@
                             <button class="fap-btn" onclick="app.openPDFModal(${workflow.id})">출력</button>
                             <div class="fap-spacer"></div>
                             ${isPackage ? `<button class="fap-btn fap-btn-primary" onclick="app.duplicateWorkflow(${workflow.id})">복사하여 시작</button>` : ''}
-                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">아카이브로 이동</button>` : ''}
+                            ${isPackage ? `<button class="fap-btn" style="color:var(--text-muted);font-size:0.82rem;" onclick="app.archiveTemplate(${workflow.id})">보관함으로 이동</button>` : ''}
                             ${!isPackage && isCompleted && !workflow.completedProcessed ? `<button class="fap-btn fap-btn-done" onclick="app.markWorkflowDone(${workflow.id})">✅ 완료 처리</button>` : ''}
                             ${!isPackage && workflow.completedProcessed ? `
                                 <div style="font-size:0.78rem;color:#10b981;font-weight:700;text-align:center;padding:4px 0;">✅ 완료 처리됨</div>
@@ -11639,7 +11639,7 @@ ${GOVERNMENT_DOCUMENT_GUIDELINES}
                 workflow.isArchived = true;
                 this.hasUnsavedChanges = true;
                 this.saveData();
-                this.showToast('success', '📦', '아카이브로 이동되었습니다. 업무 관리에서 복원할 수 있습니다.');
+                this.showToast('success', '📦', '보관함으로 이동되었습니다. 업무 관리에서 복원할 수 있습니다.');
                 if (this.focusMode && this.focusedWorkflowId === id) {
                     this.exitFocusMode();
                 } else {
@@ -14587,14 +14587,11 @@ ${incompleteInfo}
                         const archivedItems = this.allData.workflows.filter(w => w.type !== 'report' && w.isArchived && !w.isDeleted);
                         if (archivedItems.length === 0) return '';
                         return `<div class="wfm-folder-divider"></div>
-                        <div class="wfm-sidebar-label" style="padding-top:4px;">아카이브</div>
-                        ${archivedItems.map(w => `
-                        <div class="wfm-archive-item" title="${this.escapeHtml(w.title)}">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-                            <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${this.escapeHtml(w.title)}</span>
-                            <button onclick="event.stopPropagation();app.restoreTemplate(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(37,99,235,0.25);border-radius:4px;background:transparent;color:var(--accent);cursor:pointer;" title="복원">복원</button>
-                            <button onclick="event.stopPropagation();app.deleteArchivedWorkflow(${w.id})" style="font-size:0.7rem;padding:1px 5px;border:1px solid rgba(239,68,68,0.25);border-radius:4px;background:transparent;color:#ef4444;cursor:pointer;margin-left:3px;" title="삭제">삭제</button>
-                        </div>`).join('')}`;
+                        <div class="wfm-folder-item${sel === '__archived__' ? ' active' : ''}" onclick="app.wfmSelectFolder('__archived__')">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="${sel === '__archived__' ? '#2563eb' : '#9ca3af'}" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+                            <span style="flex:1;">보관함</span>
+                            <span class="wfm-folder-count">${archivedItems.length}</span>
+                        </div>`;
                     })()}
                     ${(() => {
                         const doneItems = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed);
@@ -14699,8 +14696,19 @@ ${incompleteInfo}
                 if (!workflow) return;
                 const isPackage = workflow.isTemplate || (workflow.folderPath && workflow.folderPath.trim() !== '');
                 const isDone = !!workflow.completedProcessed;
+                const isArchived = !!workflow.isArchived;
 
-                menu.innerHTML = `
+                menu.innerHTML = isArchived ? `
+                    <div class="wfm-ctx-item" onclick="app.restoreTemplate(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg>
+                        복원
+                    </div>
+                    <div class="wfm-ctx-divider"></div>
+                    <div class="wfm-ctx-item danger" onclick="app.deleteArchivedWorkflow(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        삭제
+                    </div>
+                ` : `
                     ${isDone ? `<div class="wfm-ctx-item" onclick="app.undoMarkWorkflowDone(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.63"/></svg>
                         완료 취소
@@ -14719,7 +14727,7 @@ ${incompleteInfo}
                     </div>` : ''}
                     ${workflow.isTemplate ? `<div class="wfm-ctx-item" onclick="app.archiveTemplate(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
-                        아카이브로 이동
+                        보관함으로 이동
                     </div>` : ''}
                     <div class="wfm-ctx-item" onclick="app.exportWorkflowPackage(${workflowId});document.getElementById('wfmCtxMenu').style.display='none';">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -14764,7 +14772,10 @@ ${incompleteInfo}
 
                 // 폴더 필터
                 let filtered;
-                if (this.wfmSelectedFolder === '__done__') {
+                if (this.wfmSelectedFolder === '__archived__') {
+                    filtered = this.allData.workflows.filter(w => w.type !== 'report' && w.isArchived && !w.isDeleted)
+                        .sort((a, b) => b.id - a.id);
+                } else if (this.wfmSelectedFolder === '__done__') {
                     filtered = this.allData.workflows.filter(w => w.type !== 'report' && !w.isDeleted && w.completedProcessed)
                         .sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0));
                 } else {
@@ -16357,7 +16368,7 @@ ${docScope === 'internal' ? `[내부결재 — 보고·검토·승인용]
                             ${checklistBadge(cnt)}
                             <div class="template-actions">
                                 <button class="btn btn-small btn-primary" onclick="app.closeModal('templateModal');app.duplicateWorkflow(${wf.id});">✅ 이 업무로 시작</button>
-                                <button class="btn btn-small btn-secondary" onclick="app.archiveTemplate(${wf.id});app.displayTemplates();">📦 아카이브로 이동</button>
+                                <button class="btn btn-small btn-secondary" onclick="app.archiveTemplate(${wf.id});app.displayTemplates();">📦 보관함으로 이동</button>
                                 <button class="btn btn-small btn-secondary" onclick="app.deleteImportedWorkflow(${wf.id})">🗑️ 삭제</button>
                             </div>
                         </div>
