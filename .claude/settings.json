@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node --check \"c:\\\\ai_navigater\\\\클로드코드\\\\index.html\")",
+      "Bash(echo \"Exit: $?\")",
+      "Bash(grep -v \"//.*cosineSimilarity\")"
+    ]
+  }
+}
