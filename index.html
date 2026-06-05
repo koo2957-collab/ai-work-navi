@@ -5279,20 +5279,31 @@
                     </div>
                 </div>
 
-                <!-- 법제처 Open API 설정 -->
-                <div style="border-top:1px solid var(--border-subtle);padding-top:14px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
-                        <label class="form-label" style="margin:0;">법제처 Open API <span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);">(OC 인증키)</span></label>
-                        <a href="https://open.law.go.kr/LSO/openApi/guideList.do" target="_blank" style="font-size:0.72rem;color:var(--accent);text-decoration:none;font-weight:500;">법제처 오픈API에서 무료 발급 →</a>
+                <!-- 법제처 Open API 설정 (아코디언) -->
+                <div style="border-top:1px solid var(--border-subtle);">
+                    <div onclick="(function(el){var bd=document.getElementById('lawApiAccBody');var ic=el.querySelector('.law-acc-ico');var open=bd.style.display==='block';bd.style.display=open?'none':'block';ic.style.transform=open?'':'rotate(90deg)';})(this)"
+                         style="display:flex;align-items:center;justify-content:space-between;padding:11px 0 11px;cursor:pointer;user-select:none;">
+                        <div style="display:flex;align-items:center;gap:7px;">
+                            <svg class="law-acc-ico" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-muted);transition:transform 0.2s;flex-shrink:0;"><polyline points="9 18 15 12 9 6"/></svg>
+                            <span style="font-size:0.85rem;font-weight:600;color:var(--text-dark);">법제처 Open API</span>
+                            <span style="font-size:0.68rem;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(16,185,129,0.1);color:#059669;border:1px solid rgba(16,185,129,0.25);">선택</span>
+                        </div>
+                        <span style="font-size:0.72rem;color:var(--text-muted);">법령 실시간 검색 · 미등록 시 일반 답변</span>
                     </div>
-                    <p style="font-size:0.74rem;color:var(--text-muted);margin:0 0 7px;">① 링크 접속 → ② 오픈API 신청 → ③ 서비스 신청 → ④ OC 인증키 복사 후 붙여넣기 (등록 후 법령 관련 질문 시 실시간 조문 검색 활성화)</p>
-                    <input type="password" class="form-input" id="lawApiKeyInput" placeholder="발급받은 OC 인증키를 입력하세요...">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;min-height:22px;">
-                        <span id="lawApiKeyStatus" style="font-size:0.76rem;color:var(--text-muted);"></span>
-                        <div style="display:flex;gap:5px;">
-                            <button class="btn btn-small btn-success" onclick="app.saveLawApiKey()">저장</button>
-                            <button class="btn btn-small btn-secondary" onclick="app.resetLawApiKey()">키 변경</button>
-                            <button class="btn btn-small btn-danger" onclick="app.deleteLawApiKey()">삭제</button>
+                    <div id="lawApiAccBody" style="display:none;padding-bottom:14px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                            <label class="form-label" style="margin:0;">OC 인증키</label>
+                            <a href="https://open.law.go.kr/LSO/openApi/guideList.do" target="_blank" style="font-size:0.72rem;color:var(--accent);text-decoration:none;font-weight:500;">법제처 오픈API에서 무료 발급 →</a>
+                        </div>
+                        <p style="font-size:0.74rem;color:var(--text-muted);margin:0 0 7px;">① 링크 접속 → ② 오픈API 신청 → ③ 서비스 신청 → ④ OC 인증키 복사 후 붙여넣기 (등록 후 법령 관련 질문 시 실시간 조문 검색 활성화)</p>
+                        <input type="password" class="form-input" id="lawApiKeyInput" placeholder="발급받은 OC 인증키를 입력하세요...">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;min-height:22px;">
+                            <span id="lawApiKeyStatus" style="font-size:0.76rem;color:var(--text-muted);"></span>
+                            <div style="display:flex;gap:5px;">
+                                <button class="btn btn-small btn-success" onclick="app.saveLawApiKey()">저장</button>
+                                <button class="btn btn-small btn-secondary" onclick="app.resetLawApiKey()">키 변경</button>
+                                <button class="btn btn-small btn-danger" onclick="app.deleteLawApiKey()">삭제</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -21044,18 +21055,26 @@ ${aiPartnerCitationFirstRules}
                     // 법제처 API 키 입력칸 초기화
                     const lawInput = document.getElementById('lawApiKeyInput');
                     const lawStatus = document.getElementById('lawApiKeyStatus');
+                    const lawAccBody = document.getElementById('lawApiAccBody');
+                    const lawAccIco = lawAccBody?.previousElementSibling?.querySelector('.law-acc-ico');
                     if (lawInput) {
                         if (this.allData.lawApiKey) {
                             lawInput.type = 'text';
                             lawInput.readOnly = true;
                             lawInput.value = '✅ 법제처 OC 인증키가 설정되어 있습니다. [키 변경] 버튼으로 수정할 수 있습니다.';
                             if (lawStatus) { lawStatus.textContent = '연결됨'; lawStatus.style.color = '#28a745'; }
+                            // 키 등록 시 아코디언 자동 열기
+                            if (lawAccBody) { lawAccBody.style.display = 'block'; }
+                            if (lawAccIco) { lawAccIco.style.transform = 'rotate(90deg)'; }
                         } else {
                             lawInput.type = 'password';
                             lawInput.readOnly = false;
                             lawInput.value = '';
                             lawInput.placeholder = '발급받은 OC 인증키를 입력하세요...';
                             if (lawStatus) { lawStatus.textContent = ''; }
+                            // 키 미등록 시 아코디언 닫기
+                            if (lawAccBody) { lawAccBody.style.display = 'none'; }
+                            if (lawAccIco) { lawAccIco.style.transform = ''; }
                         }
                     }
 
